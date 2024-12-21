@@ -1,12 +1,47 @@
-# SmartGuide für Oral-B (tm) brAun
+# SmartGuide for Oral-B (tm) brAun
 
-Ich weiß nicht warum, aber ich habe den SmartGuide einfach mal von der Wand gerissen und einen ST-Link dran gehalten. Programm auslesen ging schon mal nicht, aber löschen ging. Und nun? Da war das Teil nutzlos.
+Now changed to english and linux.
 
-Also habe ich den Controller einfach mal mit einem eigenen Program gefüttert. Hier das Resultat.
+ToDos:
 
-Es ist jetzt einfach nur eine Uhr, die sich aber leicht stellen lässt. Links die Stunden, ohne Minuten oder Sekunden zurück zu setzten (gut bei Winter- und Sommerzeit umstellung. Rechts für die Minuten, mit Sekunden auf 0 setzen.
+1. activate bluetooth
+1. read original spi data
+1. current consumption for battery to high
 
-Den Bluetooth empfänger habe ich noch nicht in Betrieb genommen. Viellecht kann das jemand anderes der den schon kennt.
+# compiling
+```
+sudo apt install sdcc
+sudo apt install cmake
+sudo apt install stlink-gui
+sudo apt install libusb-1.0-0-dev
+git clone https://github.com/onepixel0/stm8-sdcc-cmake.git
+git clone https://github.com/vdudouyt/stm8flash.git
+cd stm8flash
+make
+./stm8flash -V
+```
+```
+../stm8flash/stm8flash -c stlinkv2 -p stm8l152 -w bin/main.ihx
+../stm8flash/stm8flash -c stlinkv2 -p stm8l152c4 -w bin/main.ihx
+../stm8flash/stm8flash -c stlinkv2 -p stm8l152c4 -w bin/origRom.hex
+../stm8flash/stm8flash -c stlinkv2 -p stm8l152c4 -s eeprom -r bin/origDatainit.hex
+```
+# Debugging
+
+## Connect a st-link
+The colors from the image.
+|name|color|usage|
+|--|--|--|
+|PIN 1|green|RST|
+|PIN 2|yellow|SWIM|
+|PIN 3|black|GND|
+|PIN 4|orange|3v3 as 3V a Bit high but working|
+
+![image](./images/st-link.png)
+
+## Connect to smart-guide
+
+![image](./images/landingPoints.png)
 
 ## License
 MIT License

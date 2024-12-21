@@ -88,7 +88,7 @@ void LCD_Initx(void) {
     #endif
 
     // LCD-Treiber initialisieren (1/4 duty, 1/3 bias, Frequenz, etc.)
-    LCD_Init(LCD_Prescaler_2, LCD_Divider_31, LCD_Duty_1_4, LCD_Bias_1_3, LCD_VoltageSource_Internal);
+    LCD_Init(LCD_Prescaler_4, LCD_Divider_31, LCD_Duty_1_4, LCD_Bias_1_3, LCD_VoltageSource_Internal);
     
     /* Mask register
     For declare the segements used.
@@ -606,6 +606,64 @@ void RTC_SetTimeConfig(uint8_t hours, uint8_t minutes, uint8_t seconds) {
     RTC_SetTime(RTC_Format_BIN, &RTC_TimeStruct);
 }
 
+void Periferal_Init(void) {
+    WWDG->CR = 0xff;
+    CLK->CKDIVR = 1;
+    CLK->PCKENR1 |= 0x10;
+    CLK->PCKENR2 |= 0x0d;
+    CLK->ICKCR |= 0x20;
+    RTC->CR2 &= 0xfb;
+    while ((RTC->ISR1 & 4)==0)
+    {
+    }
+    RTC->CR1 |= 0x03;
+    RTC->WUTRH = 0;
+    RTC->WUTRL = 0x7f;
+    while ((CLK->CRTCR & 0x01) !=0)
+    {
+    }
+    CLK->CRTCR = 0x10;
+    RTC->CR2 |= 0x44;
+    RTC->WPR = 0;
+    
+    
+    // GPIOA_CR1 = 0xff;
+    // GPIOA_DDR = 0;
+    // GPIOC_ODR = GPIOC_ODR | 0x1c;
+    // GPIOB_DDR = 0x70;
+    // GPIOB_CR1 = 0xff;
+    // GPIOB_ODR = GPIOB_ODR | 0x10;
+    // EXI_CR3 = EXI_CR3 | 0x80;
+    // EXI_CONF1 = 0xc0;
+    // EXI_CR1 = EXI_CR1 | 4;
+    // GPIOE_CR1 = 0xff;
+    // GPIOE_DDR = 0;
+    // GPIOC_CR1 = 0xff;
+    // GPIOC_DDR = 0x9d;
+    // GPIOD_CR1 = 0xff;
+    // GPIOD_DDR = 0xa0;
+    // LCD_CR1 = 6;
+    // LCD_CR2 = 0xe8;
+    // LCD_FRQ = 0x20;
+    // LCD_PM0 = 0xfe;
+    // LCD_PM1 = 0x3f;
+    // LCD_PM2 = 4;
+    // LCD_CR3 = 0x41;
+    // ADC_TRIGR0 = 0x10;
+    // do {
+    // } while ((PWR_CSR2 & 1) == 0);
+    // ADC_CR2 = 0x80;
+    // ADC_CR3 = 0xfc;
+    // ADC_SQR0 = 0x90;
+    // SPI1_CR2 = 3;
+    // SPI1_CR1 = 0x5c;
+    enableInterrupts();
+}
+
+void TriggerWWDG(void) {
+    WWDG->CR |= 0x7f;
+}
+
 int main(void) {
     GPIO_Init(GPIOE, GPIO_Pin_7, GPIO_Mode_In_PU_No_IT);
     uint8_t tasterSet = GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_7);
@@ -620,6 +678,7 @@ int main(void) {
     int tasterSetOld = 0;
     // Endlosschleife
     while (1) {
+        TriggerWWDG();
         RTC_TimeTypeDef RTC_TimeStruct;
         RTC_GetTime(RTC_Format_BIN, &RTC_TimeStruct);
         uint8_t lowMinutes = RTC_TimeStruct.RTC_Minutes % 10;
